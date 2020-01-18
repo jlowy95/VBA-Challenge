@@ -35,7 +35,7 @@ Sub ALLticker_summary()
     
         'Create Headers
         ws.Range("I1:R1").Value = Array("Ticker", "Yearly Change", "Percent Change", "Total Stock Volume", , , , , "Ticker", "Value")
-        ws.Range("O2:O4").Value = Array("Greatest % Increase", "Greatest % Decrease", "Greatest Total Volume")
+        ws.Range("O2:O4").Value = Application.Transpose(Array("Greatest % Increase", "Greatest % Decrease", "Greatest Total Volume"))
     
         current_ticker = ws.Range("A2").Value  'Initialize current_ticker to be the first ticker
         i = 2
@@ -76,8 +76,12 @@ Sub ALLticker_summary()
         Loop
     
         'Challenge 1 Calculations
-    
+        
         result_i = 2  'Reset result_i for new processes
+        'Initialize gpi, gpd, gtv values
+        gpi = ws.Cells(result_i, 11).Value
+        gpd = ws.Cells(result_i, 11).Value
+        gtv = ws.Cells(result_i, 12).Value
     
         Do While ws.Cells(result_i, 9).Value <> ""
             If ws.Cells(result_i, 11).Value > gpi Then
@@ -92,16 +96,24 @@ Sub ALLticker_summary()
                 gtv = ws.Cells(result_i, 12).Value
                 gtv_ticker = ws.Cells(result_i, 9).Value
             End If
+            
+            'MsgBox "result_i: " & result_i & "   gpi: " & gpi & "   gpd: " & gpd & "   gtv: " & gtv
             result_i = result_i + 1
+            
         Loop
     
         'Display Challenge 1 Results
         ws.Range("Q2:R2").Value = Array(gpi_ticker, gpi)
         ws.Range("Q3:R3").Value = Array(gpd_ticker, gpd)
         ws.Range("Q4:R4").Value = Array(gtv_ticker, gtv)
+
         
         'Format columns I:R
-        ws.Range("I1:R1").Columns.AutoFit
+        ws.Range("I1:Q1").Columns.AutoFit
+        ws.Range("K1").NumberFormat = "0.00%"
+        ws.Range("L1").NumberFormat = "#,###"
+        ws.Range("R2:R3").NumberFormat = "0.00%"
+        ws.Range("R4").NumberFormat = "#,###"
     
     Next ws
     

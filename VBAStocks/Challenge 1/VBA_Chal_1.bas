@@ -1,6 +1,6 @@
-Attribute VB_Name = "Module1"
-Sub ticker_summary()
-    'A script that will loop through all the stocks for one year
+Attribute VB_Name = "Module2"
+Sub ALLticker_summary()
+    'A script that will loop through all the stocks for each year
     'for each run and take the following information:
     '1. The ticker symbol.
     '2. Yearly change from opening price at the beginning of a given year
@@ -29,65 +29,93 @@ Sub ticker_summary()
     Dim gtv As Double  'Greatest Total Volume
     Dim gtv_ticker As String
     
+    Dim ws As Worksheet  'For summarizing all of the years/sheets
     
-    current_ticker = Range("A2").Value  'Initialize current_ticker to be the first ticker
-    i = 2
-    result_i = 2
+    For Each ws In Sheets
     
-    'Initialize results display
-    Cells(result_i, 9).Value = current_ticker
+        'Create Headers
+        ws.Range("I1:R1").Value = Array("Ticker", "Yearly Change", "Percent Change", "Total Stock Volume", , , , , "Ticker", "Value")
+        ws.Range("O2:O4").Value = Application.Transpose(Array("Greatest % Increase", "Greatest % Decrease", "Greatest Total Volume"))
+    
+        current_ticker = ws.Range("A2").Value  'Initialize current_ticker to be the first ticker
+        i = 2
+        result_i = 2
+    
+        'Initialize results display
+        ws.Cells(result_i, 9).Value = current_ticker
     
     
-    Do While Cells(i, 1).Value <> ""
-        open_price = Cells(i, 3).Value
-        total = 0
-        Do While Cells(i, 1).Value = current_ticker
-            total = total + Cells(i, 7).Value
-            i = i + 1
+        Do While ws.Cells(i, 1).Value <> ""
+            open_price = ws.Cells(i, 3).Value
+            total = 0
+            Do While ws.Cells(i, 1).Value = current_ticker
+                total = total + ws.Cells(i, 7).Value
+                i = i + 1
+            Loop
+        
+            'Yearly Change
+            close_price = ws.Cells(i - 1, 6).Value
+            deltaY = close_price - open_price
+            ws.Cells(result_i, 10).Value = deltaY
+        
+            'Percent Change
+            If open_price = 0 Then
+                deltaPercent = 0
+            Else
+                deltaPercent = deltaY / open_price
+            End If
+            ws.Cells(result_i, 11).Value = deltaPercent
+        
+            'Total Stock Volume
+            ws.Cells(result_i, 12).Value = total
+        
+            'Set new current_ticker now that we've finished the previous one
+            current_ticker = ws.Cells(i, 1).Value
+            result_i = result_i + 1
+            ws.Cells(result_i, 9).Value = current_ticker
         Loop
+    
+        'Challenge 1 Calculations
         
-        'Yearly Change
-        close_price = Cells(i - 1, 6).Value
-        deltaY = close_price - open_price
-        Cells(result_i, 10).Value = deltaY
+        result_i = 2  'Reset result_i for new processes
+        'Initialize gpi, gpd, gtv values
+        gpi = ws.Cells(result_i, 11).Value
+        gpd = ws.Cells(result_i, 11).Value
+        gtv = ws.Cells(result_i, 12).Value
+    
+        Do While ws.Cells(result_i, 9).Value <> ""
+            If ws.Cells(result_i, 11).Value > gpi Then
+                gpi = ws.Cells(result_i, 11).Value
+                gpi_ticker = ws.Cells(result_i, 9).Value
+            End If
+            If ws.Cells(result_i, 11).Value < gpd Then
+                gpd = ws.Cells(result_i, 11).Value
+                gpd_ticker = ws.Cells(result_i, 9).Value
+            End If
+            If ws.Cells(result_i, 12).Value > gtv Then
+                gtv = ws.Cells(result_i, 12).Value
+                gtv_ticker = ws.Cells(result_i, 9).Value
+            End If
+            
+            'MsgBox "result_i: " & result_i & "   gpi: " & gpi & "   gpd: " & gpd & "   gtv: " & gtv
+            result_i = result_i + 1
+            
+        Loop
+    
+        'Display Challenge 1 Results
+        ws.Range("Q2:R2").Value = Array(gpi_ticker, gpi)
+        ws.Range("Q3:R3").Value = Array(gpd_ticker, gpd)
+        ws.Range("Q4:R4").Value = Array(gtv_ticker, gtv)
+
         
-        'Percent Change
-        deltaPercent = deltaY / open_price
-        Cells(result_i, 11).Value = deltaPercent
-        
-        'Total Stock Volume
-        Cells(result_i, 12).Value = total
-        
-        'Set new current_ticker now that we've finished the previous one
-        current_ticker = Cells(i, 1).Value
-        result_i = result_i + 1
-        Cells(result_i, 9).Value = current_ticker
-    Loop
+        'Format columns I:R
+        ws.Range("I1:Q1").Columns.AutoFit
+        ws.Range("K1").NumberFormat = "0.00%"
+        ws.Range("L1").NumberFormat = "#,###"
+        ws.Range("R2:R3").NumberFormat = "0.00%"
+        ws.Range("R4").NumberFormat = "#,###"
     
-    'Challenge 1 Calculations
-    
-    result_i = 2  'Reset result_i for new processes
-    
-    Do While Cells(result_i, 9).Value <> ""
-        If Cells(result_i, 11).Value > gpi Then
-            gpi = Cells(result_i, 11).Value
-            gpi_ticker = Cells(result_i, 9).Value
-        End If
-        If Cells(result_i, 11).Value < gpd Then
-            gpd = Cells(result_i, 11).Value
-            gpd_ticker = Cells(result_i, 9).Value
-        End If
-        If Cells(result_i, 12).Value > gtv Then
-            gtv = Cells(result_i, 12).Value
-            gtv_ticker = Cells(result_i, 9).Value
-        End If
-        result_i = result_i + 1
-    Loop
-    
-    'Display Challenge 1 Results
-    Range("Q2:R2").Value = Array(gpi_ticker, gpi)
-    Range("Q3:R3").Value = Array(gpd_ticker, gpd)
-    Range("Q4:R4").Value = Array(gtv_ticker, gtv)
-    
+    Next ws
     
 End Sub
+
